@@ -1,0 +1,14 @@
+version: "3"
+ 
+services:
+ 
+  kf-jontest6_1:
+    image: cad-kf-to-cb
+    environment:
+      - KAFKA_NODES=docker01.concordservicing.com:29092,docker02.concordservicing.com:39092,docker03.concordservicing.com:49092
+      - COUCHBASE_NODES=docker04.concordservicing.com,docker05.concordservicing.com,docker06.concordservicing.com
+      - KAFKA_TOPIC=jontest030
+      - KAFKA_GROUP_ID=arch-group1
+      - STATSD_SERVER=docker04.concordservicing.com
+      - BATCH_SIZE=100
+

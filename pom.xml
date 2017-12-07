@@ -1,0 +1,199 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>csl-arch-demo2</groupId>
+  <artifactId>kafka-consumer</artifactId>
+  <repositories>
+	  <repository>
+	    <id>confluent</id>
+	    <url>http://packages.confluent.io/maven/</url>
+	  </repository>
+  </repositories>
+
+  <dependencies>
+	<!-- https://mvnrepository.com/artifact/com.couchbase.client/java-client -->
+	<dependency>
+	    <groupId>com.couchbase.client</groupId>
+	    <artifactId>java-client</artifactId>
+	    <version>2.5.1</version>
+	</dependency>
+
+	<dependency>
+	  <groupId>org.apache.kafka</groupId>
+	  <artifactId>kafka_2.11</artifactId>
+	  <!-- For CP 3.3.0 -->
+	  <version>0.11.0.0-cp1</version>
+	</dependency>	
+
+ 	<!-- https://mvnrepository.com/artifact/com.timgroup/java-statsd-client -->
+	<dependency>
+	    <groupId>com.timgroup</groupId>
+	    <artifactId>java-statsd-client</artifactId>
+	    <version>3.1.0</version>
+	</dependency>
+  </dependencies>
+  <build>
+    <plugins>
+       <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-clean-plugin</artifactId>
+           <version>3.0.0</version>
+           <configuration>
+               <filesets>
+                   <fileset>
+                       <directory>${project.basedir}/docker-build-dir</directory>
+                       <includes>
+                           <include>**/*.jar</include>
+                       </includes>
+                       <followSymlinks>false</followSymlinks>
+                   </fileset>
+               </filesets>
+           </configuration>
+       </plugin>
+
+    <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-resources-plugin</artifactId>
+		<version>3.0.2</version>
+       	<executions>
+          <execution>
+             <id>copy-resources</id>
+             <phase>process-resources</phase>
+             <goals>
+                 <goal>copy-resources</goal>
+             </goals>
+             <configuration>
+               <outputDirectory>${project.build.directory}/docker-build-dir</outputDirectory>
+               <resources>
+                  <resource>
+                     <directory>src/main/resources/docker</directory>
+                     <includes>
+                        <include>Dockerfile</include>
+                     </includes>
+                  </resource>
+               </resources>
+             </configuration>
+           </execution>
+        </executions>
+     </plugin>
+
+      <plugin>
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <version>1.5.3</version>
+        <executions>
+            <execution>
+               <phase>prepare-package</phase>
+               <goals>
+                   <goal>replace</goal>
+               </goals>
+            </execution>
+        </executions>
+        <configuration>
+             <file>${project.build.directory}/docker-build-dir/Dockerfile</file>
+             <replacements>
+                 <replacement>
+                     <token>IMAGE_VERSION</token>
+                     <value>${project.version}</value>
+                 </replacement>
+             </replacements>
+         </configuration>
+     </plugin>
+ 
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-compiler-plugin</artifactId>
+	  <version>3.6.1</version>
+	  <configuration>
+	    <source>1.8</source>
+	    <target>1.8</target>
+	  </configuration>
+	</plugin>
+      
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <outputDirectory>${project.build.directory}/docker-build-dir</outputDirectory>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+	        <configuration>
+              <outputDirectory>${project.build.directory}/docker-build-dir/dependency</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+<!--       
+      <plugin>
+		  <groupId>com.spotify</groupId>
+		  <artifactId>dockerfile-maven-plugin</artifactId>
+		  <version>1.2.1</version>
+		  <executions>
+		    <execution>
+		      <id>default</id>
+		      <goals>
+		        <goal>build</goal>
+		        <goal>push</goal>
+		      </goals>
+		    </execution>
+		  </executions>
+              <configuration>
+                  <contextDirectory>${project.build.directory}/docker-build-dir</contextDirectory>
+                  <writeTestMetadata>false</writeTestMetadata>
+                  <dockerInfoDirectory></dockerInfoDirectory>
+                  <verbose>true</verbose>
+                  <forceCreation>true</forceCreation>
+                  <imageName>joncatlin/${project.name}</imageName>
+                  <repository>joncatlin/${project.name}</repository>
+                  <tag>${project.version}</tag>
+                  <forceTags>true</forceTags>
+                  <pullNewerImage>false</pullNewerImage>
+                  <imageTags>
+                      <imageTag>${project.version}</imageTag>
+                  </imageTags>
+                  <dockerDirectory>${project.build.directory}/docker-build-dir</dockerDirectory>
+              </configuration>
+	</plugin>
+ -->
+<!-- Sample elements of a configuration for the dockerfile-maven-plugin
+	          <configuration>
+	              <contextDirectory>${project.build.directory}/docker-build-dir</contextDirectory>
+	              <writeTestMetadata>false</writeTestMetadata>
+	              <dockerInfoDirectory></dockerInfoDirectory>
+	              <verbose>true</verbose>
+	              <forceCreation>true</forceCreation>
+	              <imageName>joncatlin/vmstats</imageName>
+	              <repository>joncatlin/vmstats</repository>
+	              <tag>${project.version}</tag>
+	              <forceTags>true</forceTags>
+	              <pullNewerImage>false</pullNewerImage>
+	              <imageTags>
+	                  <imageTag>${project.version}</imageTag>
+	              </imageTags>
+	              <dockerDirectory>${project.build.directory}/docker-build-dir</dockerDirectory>
+	          </configuration>
+ -->
+      
+      
+      
+      
+      
+    </plugins>
+  </build>
+  <version>1.0.6</version>
+</project>
